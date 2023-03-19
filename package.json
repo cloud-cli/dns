@@ -1,5 +1,5 @@
 {
-  "name": "@cloud-cli/",
+  "name": "@cloud-cli/dns",
   "version": "0.0.0",
   "scripts": {
     "build": "tsc",
@@ -9,7 +9,7 @@
   "prettier": "@cloud-cli/prettier-config",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cloud-cli/.git"
+    "url": "https://github.com/cloud-cli/dns.git"
   },
   "publishConfig": {
     "access": "public"
