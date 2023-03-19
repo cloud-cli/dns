@@ -1,6 +1,9 @@
 {
   "name": "@cloud-cli/dns",
   "version": "0.0.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "test": "jest",
