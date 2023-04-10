@@ -11,28 +11,29 @@ export class DNS {
     return { domain: parts[1], target: parts[2] }
   }
 }
+
 interface DomainAndTarget {
   domain: string;
   target?: string;
 }
 
 function add(input: DomainAndTarget) {
-  let list = show();
+  let current = list();
 
   if (!input.target) {
     input.target = '127.0.0.1';
   }
 
-  list = list.filter(item => item.domain !== input.domain);
-  list.push(input);
-  save(list);
+  current = current.filter(item => item.domain !== input.domain);
+  current.push(input);
+  save(current);
 
   return true;
 }
 
 function remove(input: DomainAndTarget) {
-  const list = show();
-  const newList = list.filter(item => item.domain !== input.domain)
+  const current = list();
+  const newList = current.filter(item => item.domain !== input.domain)
   save(newList);
 
   return true;
@@ -43,7 +44,9 @@ function save(list: DomainAndTarget[]) {
   fs.writeFileSync(filePath, txt.join('\n'));
 }
 
-function show(): DomainAndTarget[] {
+function list(): DomainAndTarget[] {
+  if (!fs.existsSync(filePath)) { return []; }
+
   const input = fs.readFileSync(filePath, 'utf8');
   const entries = input
     .trim()
@@ -59,4 +62,4 @@ async function reload() {
   return cmd.ok || Promise.reject(new Error('Failed to reload'));
 }
 
-export default { add, remove, show, reload }
+export default { add, remove, list, reload }
