@@ -11,10 +11,15 @@ describe('dns', () => {
   });
 
   it('should load entries from file', () => {
+    let fileExists = false;
     const buffer = `address=/test/1.2.3.4\naddress=/foo/5.6.7.8`;
+    jest.spyOn(fs, 'existsSync').mockImplementation(() => fileExists);
     jest.spyOn(fs, 'readFileSync').mockImplementation(() => buffer);
-
-    const list = dns.show();
+    
+    expect(dns.list()).toEqual([]);
+    
+    fileExists = true;
+    const list = dns.list();
     expect(list).toEqual([
       { domain: 'test', target: '1.2.3.4' },
       { domain: 'foo', target: '5.6.7.8' },
