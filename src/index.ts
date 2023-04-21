@@ -67,7 +67,6 @@ function addDnsConfig(options: DNSConfig) {
 
 function save(list: DomainAndTarget[]) {
   const txt = list.map(line => `address=/${line.domain}/${line.target}`);
-  console.log('save', filePath, txt);
   fs.writeFileSync(filePath, txt.join('\n'));
 }
 
