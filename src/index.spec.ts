@@ -1,12 +1,18 @@
-import { DNS } from './index';
-import dns from './index';
+import dns, { parseDNSLine } from './index';
 import fs from 'fs';
 import * as exec from '@cloud-cli/exec';
+import { init } from '@cloud-cli/cli';
+
+beforeEach(() => {
+  jest.spyOn(fs, 'writeFileSync').mockImplementation();
+  jest.spyOn(fs, 'readFileSync').mockImplementation(() => '');
+});
 
 describe('dns', () => {
   it('should parse a DNS configuration line', () => {
     const line = 'address=/foo/1.2.3.4';
-    const output = DNS.parse(line);
+    const output = parseDNSLine(line);
+
     expect(output).toEqual({ target: '1.2.3.4', domain: 'foo' });
   });
 
@@ -15,9 +21,9 @@ describe('dns', () => {
     const buffer = `address=/test/1.2.3.4\naddress=/foo/5.6.7.8`;
     jest.spyOn(fs, 'existsSync').mockImplementation(() => fileExists);
     jest.spyOn(fs, 'readFileSync').mockImplementation(() => buffer);
-    
+
     expect(dns.list()).toEqual([]);
-    
+
     fileExists = true;
     const list = dns.list();
     expect(list).toEqual([
@@ -57,4 +63,13 @@ describe('dns', () => {
       await expect(dns.reload()).rejects.toEqual(new Error('Failed to reload'));
     });
   });
+
+  describe('dns configuration', () => {
+    it('should configure the default target', () => {
+      dns[init]({ defaultTarget: '1.1.2.2' });
+      dns.add({ domain: 'bar' });
+
+      expect(fs.writeFileSync).toHaveBeenCalledWith(expect.any(String), 'address=/bar/1.1.2.2');
+    });
+  })
 });

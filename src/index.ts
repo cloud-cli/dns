@@ -1,10 +1,17 @@
-import { writeFileSync, readFileSync, existsSync } from 'fs';
+import fs from 'fs';
 import { join } from 'path';
 import { exec } from '@cloud-cli/exec';
+import { init } from '@cloud-cli/cli';
+
+interface DNSConfig {
+  defaultTarget?: string;
+}
 
 const lineParse = /^address=\/(.+)\/(.+)$/;
 const filePath = join(process.cwd(), 'configuration', 'apps.conf');
-const defaultTarget = process.env.DEFAULT_TARGET || '127.0.0.1';
+const dnsConfig: DNSConfig = {
+  defaultTarget: '127.0.0.1'
+};
 
 interface DomainAndTarget {
   domain: string;
@@ -15,13 +22,13 @@ function add(input: DomainAndTarget) {
   let current = list();
 
   if (!input.target) {
-    input.target = defaultTarget;
+    input.target = dnsConfig.defaultTarget;
   }
 
   current = current.filter(item => item.domain !== input.domain);
   current.push(input);
   save(current);
-  
+
   return true;
 }
 
@@ -33,11 +40,11 @@ function remove(input: DomainAndTarget) {
 }
 
 function list(): DomainAndTarget[] {
-  if (!existsSync(filePath)) {
+  if (!fs.existsSync(filePath)) {
     return [];
   }
 
-  const input = readFileSync(filePath, 'utf8');
+  const input = fs.readFileSync(filePath, 'utf8');
   const entries = input
     .trim()
     .split('\n')
@@ -52,14 +59,21 @@ async function reload() {
   return cmd.ok || Promise.reject(new Error('Failed to reload'));
 }
 
-function save(list: DomainAndTarget[]) {
-  const txt = list.map(line => `address=/${line.domain}/${line.target || defaultTarget}`);
-  writeFileSync(filePath, txt.join('\n'));
+function addDnsConfig(options: DNSConfig) {
+  if (options && options.defaultTarget) {
+    dnsConfig.defaultTarget = options.defaultTarget;
+  }
 }
 
-function parseDNSLine(line: string) {
+function save(list: DomainAndTarget[]) {
+  const txt = list.map(line => `address=/${line.domain}/${line.target}`);
+  console.log('save', filePath, txt);
+  fs.writeFileSync(filePath, txt.join('\n'));
+}
+
+export function parseDNSLine(line: string) {
   const parts = line.match(lineParse);
   return { domain: parts[1], target: parts[2] }
 }
 
-export default { add, remove, list, reload }
+export default { add, remove, list, reload, [init]: addDnsConfig }

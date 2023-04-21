@@ -23,6 +23,7 @@
     "@cloud-cli/typescript-config": "^1.0.0"
   },
   "dependencies": {
+    "@cloud-cli/cli": "^1.6.0",
     "@cloud-cli/exec": "^1.0.4"
   }
 }
