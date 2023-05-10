@@ -54,7 +54,7 @@ function list(): DomainAndTarget[] {
   return entries;
 }
 
-function get(options: { domain: string; }): DomainAndTarget[] {
+function get(options: { domain: string; }): DomainAndTarget | null {
   return list().filter(d => d.domain === options.domain)[0] || null;
 }
 
