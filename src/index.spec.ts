@@ -32,6 +32,18 @@ describe('dns', () => {
     ])
   });
 
+  it('should get a DNS entry by domain', () => {
+    let fileExists = false;
+    const buffer = `address=/test.com/1.2.3.4\naddress=/foo.com/5.6.7.8`;
+    jest.spyOn(fs, 'existsSync').mockImplementation(() => fileExists);
+    jest.spyOn(fs, 'readFileSync').mockImplementation(() => buffer);
+
+    expect(dns.get({ domain: 'foo.com' })).toBe(null);
+
+    fileExists = true;
+    expect(dns.get({ domain: 'foo.com' })).toEqual({ domain: 'foo.com', target: '5.6.7.8' });
+  });
+
   it('should add and remove local DNS entries', () => {
     let text = '';
     jest.spyOn(fs, 'writeFileSync').mockImplementation((_file, value: string) => { text = value; });

@@ -54,6 +54,10 @@ function list(): DomainAndTarget[] {
   return entries;
 }
 
+function get(options: { domain: string; }): DomainAndTarget[] {
+  return list().filter(d => d.domain === options.domain)[0] || null;
+}
+
 async function reload() {
   const cmd = await exec('systemctl', ['restart', 'dnsmasq']);
   return cmd.ok || Promise.reject(new Error('Failed to reload'));
@@ -75,4 +79,4 @@ export function parseDNSLine(line: string) {
   return { domain: parts[1], target: parts[2] }
 }
 
-export default { add, remove, list, reload, [init]: addDnsConfig }
+export default { add, remove, list, reload, get, [init]: addDnsConfig }
