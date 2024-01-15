@@ -77,8 +77,8 @@ describe('dns', () => {
     });
 
     it('should show error on reload', async () => {
-      jest.spyOn(exec, 'exec').mockResolvedValue({ ok: false, stderr: '123' } as any);
-      jest.spyOn(exec, 'exec').mockResolvedValue({ ok: false, stderr: 'error' } as any);
+      jest.spyOn(exec, 'exec').mockResolvedValueOnce({ ok: false, stderr: '123' } as any);
+      jest.spyOn(exec, 'exec').mockResolvedValueOnce({ ok: false, stderr: 'error' } as any);
 
       await expect(dns.reload()).rejects.toEqual(new Error('Failed to reload'));
     });
