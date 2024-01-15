@@ -48,7 +48,7 @@ function list(): DomainAndTarget[] {
     .trim()
     .split('\n')
     .filter(Boolean)
-    .map(parseDNSLine)
+    .flatMap(parseDNSLine)
 
   return entries;
 }
@@ -70,11 +70,18 @@ function addDnsConfig(options: DNSConfig) {
 }
 
 function save(list: DomainAndTarget[]) {
-  const txt = list.map(line => `address=/${line.domain}/${line.target}`);
-  fs.writeFileSync(filePath, txt.join('\n'));
+  const targets: Record<string, string[]> = list.reduce((all, next) => {
+    all[next.target] ||= [];
+    all[next.target].push(next.domain);
+    return all;
+  }, {});
+
+  const txt = Object.entries(targets).map(([ip, domains]) => `${ip} ${domains.join(' ')}`);
+
+  fs.writeFileSync(filePath, txt.join('\n').trim());
 }
 
-export function parseDNSLine(line: string) {
+export function parseDNSLine(line: string): DomainAndTarget[] {
   const [ip, ...domains] = line.split(' ');
   return domains.map(d => ({ domain: d, target: ip }));
 }

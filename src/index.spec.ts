@@ -86,7 +86,7 @@ describe('dns', () => {
       dns[init]({ defaultTarget: '1.1.2.2' });
       dns.add({ domain: 'bar' });
 
-      expect(fs.writeFileSync).toHaveBeenCalledWith(expect.any(String), 'address=/bar/1.1.2.2');
+      expect(fs.writeFileSync).toHaveBeenCalledWith(expect.any(String), '1.1.2.2 bar');
     });
   })
 });
