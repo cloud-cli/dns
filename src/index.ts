@@ -82,7 +82,7 @@ function save(list: DomainAndTarget[]) {
 }
 
 export function parseDNSLine(line: string): DomainAndTarget[] {
-  const [ip, ...domains] = line.split(' ');
+  const [ip, ...domains] = line.split(/\s+/);
   return domains.map(d => ({ domain: d, target: ip }));
 }
 

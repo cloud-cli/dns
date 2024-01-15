@@ -53,14 +53,16 @@ describe('dns', () => {
     jest.spyOn(fs, 'readFileSync').mockImplementation(() => text);
 
     dns.add({ domain: 'foo', target: '2.3.4.5' });
-    dns.add({ domain: 'bar' });
+    dns.add({ domain: 'bar', target: '2.3.4.5' });
+    dns.add({ domain: 'baz' });
 
-    const lines = ['2.3.4.5 foo', '127.0.0.1 bar'];
+    const lines = ['2.3.4.5 foo bar', '127.0.0.1 baz'];
 
-    expect(fs.writeFileSync).toHaveBeenCalledWith(expect.any(String), lines[0]);
+    expect(fs.writeFileSync).toHaveBeenCalledWith(expect.any(String), '2.3.4.5 foo');
+    expect(fs.writeFileSync).toHaveBeenCalledWith(expect.any(String), '2.3.4.5 foo bar');
     expect(fs.writeFileSync).toHaveBeenCalledWith(expect.any(String), lines.join('\n'));
 
-    dns.remove({ domain: 'bar' });
+    dns.remove({ domain: 'baz' });
     expect(text).toBe(lines[0]);
   });
 
