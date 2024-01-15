@@ -7,8 +7,7 @@ interface DNSConfig {
   defaultTarget?: string;
 }
 
-const lineParse = /^address=\/(.+)\/(.+)$/;
-const filePath = join(process.cwd(), 'configuration', 'apps.conf');
+const filePath = join(process.cwd(), 'configuration', 'hosts.conf');
 const dnsConfig: DNSConfig = {
   defaultTarget: '127.0.0.1'
 };
@@ -59,7 +58,8 @@ function get(options: { domain: string; }): DomainAndTarget | null {
 }
 
 async function reload() {
-  const cmd = await exec('systemctl', ['restart', 'dnsmasq']);
+  const getPid = await exec('pidof', ['dnsmasq']);
+  const cmd = await exec('kill', ['-s', 'HUP', getPid.stdout.trim()]);
   return cmd.ok || Promise.reject(new Error('Failed to reload'));
 }
 
@@ -75,8 +75,8 @@ function save(list: DomainAndTarget[]) {
 }
 
 export function parseDNSLine(line: string) {
-  const parts = line.match(lineParse);
-  return { domain: parts[1], target: parts[2] }
+  const [ip, ...domains] = line.split(' ');
+  return domains.map(d => ({ domain: d, target: ip }));
 }
 
 export default { add, remove, list, reload, get, [init]: addDnsConfig }

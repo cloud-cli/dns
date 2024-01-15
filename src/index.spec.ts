@@ -10,15 +10,18 @@ beforeEach(() => {
 
 describe('dns', () => {
   it('should parse a DNS configuration line', () => {
-    const line = 'address=/foo/1.2.3.4';
+    const line = '1.2.3.4     foo bar';
     const output = parseDNSLine(line);
 
-    expect(output).toEqual({ target: '1.2.3.4', domain: 'foo' });
+    expect(output).toEqual([
+      { target: '1.2.3.4', domain: 'foo' },
+      { target: '1.2.3.4', domain: 'bar' },
+    ]);
   });
 
   it('should load entries from file', () => {
     let fileExists = false;
-    const buffer = `address=/test/1.2.3.4\naddress=/foo/5.6.7.8`;
+    const buffer = `1.2.3.4 test\n5.6.7.8 foo`;
     jest.spyOn(fs, 'existsSync').mockImplementation(() => fileExists);
     jest.spyOn(fs, 'readFileSync').mockImplementation(() => buffer);
 
@@ -34,7 +37,7 @@ describe('dns', () => {
 
   it('should get a DNS entry by domain', () => {
     let fileExists = false;
-    const buffer = `address=/test.com/1.2.3.4\naddress=/foo.com/5.6.7.8`;
+    const buffer = `1.2.3.4 test.com\n5.6.7.8 foo.com`;
     jest.spyOn(fs, 'existsSync').mockImplementation(() => fileExists);
     jest.spyOn(fs, 'readFileSync').mockImplementation(() => buffer);
 
@@ -52,7 +55,7 @@ describe('dns', () => {
     dns.add({ domain: 'foo', target: '2.3.4.5' });
     dns.add({ domain: 'bar' });
 
-    const lines = ['address=/foo/2.3.4.5', 'address=/bar/127.0.0.1']
+    const lines = ['2.3.4.5 foo', '127.0.0.1 bar'];
 
     expect(fs.writeFileSync).toHaveBeenCalledWith(expect.any(String), lines[0]);
     expect(fs.writeFileSync).toHaveBeenCalledWith(expect.any(String), lines.join('\n'));
@@ -63,10 +66,12 @@ describe('dns', () => {
 
   describe('reload', () => {
     it('should reload the DNS service', async () => {
-      jest.spyOn(exec, 'exec').mockResolvedValue({ ok: true } as any);
+      jest.spyOn(exec, 'exec').mockResolvedValueOnce({ ok: true, stdout: '123' } as any);
+      jest.spyOn(exec, 'exec').mockResolvedValueOnce({ ok: true } as any);
 
       await expect(dns.reload()).resolves.toBe(true);
-      expect(exec.exec).toHaveBeenCalledWith('systemctl', ['restart', 'dnsmasq']);
+      expect(exec.exec).toHaveBeenCalledWith('pidof', ['dnsmasq']);
+      expect(exec.exec).toHaveBeenCalledWith('kill', ['-s', 'HUP', '123']);
     });
 
     it('should show error on reload', async () => {
