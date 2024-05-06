@@ -6,8 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "test": "jest",
-    "tdd": "jest --watchAll"
+    "test": "vitest"
   },
   "prettier": "@cloud-cli/prettier-config",
   "repository": {
