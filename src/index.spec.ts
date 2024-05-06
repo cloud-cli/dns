@@ -1,11 +1,18 @@
 import dns, { parseDNSLine } from './index';
 import fs from 'fs';
-import * as exec from '@cloud-cli/exec';
 import { init } from '@cloud-cli/cli';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+const execMocks = vi.hoisted(() => ({
+  exec: vi.fn(),
+}));
+
+vi.mock('get-port', () => ({ default: vi.fn().mockReturnValue(1234) }));
+vi.mock('@cloud-cli/exec', () => ({ exec: execMocks.exec }));
 
 beforeEach(() => {
-  jest.spyOn(fs, 'writeFileSync').mockImplementation();
-  jest.spyOn(fs, 'readFileSync').mockImplementation(() => '');
+  vi.spyOn(fs, 'writeFileSync').mockImplementation(() => {});
+  vi.spyOn(fs, 'readFileSync').mockImplementation(() => '');
 });
 
 describe('dns', () => {
@@ -22,8 +29,8 @@ describe('dns', () => {
   it('should load entries from file', () => {
     let fileExists = false;
     const buffer = `1.2.3.4 test\n5.6.7.8 foo`;
-    jest.spyOn(fs, 'existsSync').mockImplementation(() => fileExists);
-    jest.spyOn(fs, 'readFileSync').mockImplementation(() => buffer);
+    vi.spyOn(fs, 'existsSync').mockImplementation(() => fileExists);
+    vi.spyOn(fs, 'readFileSync').mockImplementation(() => buffer);
 
     expect(dns.list()).toEqual([]);
 
@@ -32,14 +39,14 @@ describe('dns', () => {
     expect(list).toEqual([
       { domain: 'test', target: '1.2.3.4' },
       { domain: 'foo', target: '5.6.7.8' },
-    ])
+    ]);
   });
 
   it('should get a DNS entry by domain', () => {
     let fileExists = false;
     const buffer = `1.2.3.4 test.com\n5.6.7.8 foo.com`;
-    jest.spyOn(fs, 'existsSync').mockImplementation(() => fileExists);
-    jest.spyOn(fs, 'readFileSync').mockImplementation(() => buffer);
+    vi.spyOn(fs, 'existsSync').mockImplementation(() => fileExists);
+    vi.spyOn(fs, 'readFileSync').mockImplementation(() => buffer);
 
     expect(dns.get({ domain: 'foo.com' })).toBe(null);
 
@@ -49,8 +56,10 @@ describe('dns', () => {
 
   it('should add and remove local DNS entries', () => {
     let text = '';
-    jest.spyOn(fs, 'writeFileSync').mockImplementation((_file, value: string) => { text = value; });
-    jest.spyOn(fs, 'readFileSync').mockImplementation(() => text);
+    vi.spyOn(fs, 'writeFileSync').mockImplementation((_file, value: string) => {
+      text = value;
+    });
+    vi.spyOn(fs, 'readFileSync').mockImplementation(() => text);
 
     dns.add({ domain: 'foo', target: '2.3.4.5' });
     dns.add({ domain: 'bar', target: '2.3.4.5' });
@@ -68,17 +77,17 @@ describe('dns', () => {
 
   describe('reload', () => {
     it('should reload the DNS service', async () => {
-      jest.spyOn(exec, 'exec').mockResolvedValueOnce({ ok: true, stdout: '123' } as any);
-      jest.spyOn(exec, 'exec').mockResolvedValueOnce({ ok: true } as any);
+      execMocks.exec.mockResolvedValueOnce({ ok: true, stdout: '123' } as any);
+      execMocks.exec.mockResolvedValueOnce({ ok: true } as any);
 
       await expect(dns.reload()).resolves.toBe(true);
-      expect(exec.exec).toHaveBeenCalledWith('pidof', ['dnsmasq']);
-      expect(exec.exec).toHaveBeenCalledWith('kill', ['-s', 'HUP', '123']);
+      expect(execMocks.exec).toHaveBeenCalledWith('pidof', ['dnsmasq']);
+      expect(execMocks.exec).toHaveBeenCalledWith('kill', ['-s', 'HUP', '123']);
     });
 
     it('should show error on reload', async () => {
-      jest.spyOn(exec, 'exec').mockResolvedValueOnce({ ok: true, stdout: '123' } as any);
-      jest.spyOn(exec, 'exec').mockResolvedValueOnce({ ok: false, stderr: 'error' } as any);
+      execMocks.exec.mockResolvedValueOnce({ ok: true, stdout: '123' } as any);
+      execMocks.exec.mockResolvedValueOnce({ ok: false, stderr: 'error' } as any);
 
       await expect(dns.reload()).rejects.toEqual(new Error('Failed to reload'));
     });
@@ -91,5 +100,5 @@ describe('dns', () => {
 
       expect(fs.writeFileSync).toHaveBeenCalledWith(expect.any(String), '1.1.2.2 bar');
     });
-  })
+  });
 });

@@ -1,5 +1,5 @@
-import fs from 'fs';
-import { join } from 'path';
+import fs from 'node:fs';
+import { join } from 'node:path';
 import { exec } from '@cloud-cli/exec';
 import { init } from '@cloud-cli/cli';
 
