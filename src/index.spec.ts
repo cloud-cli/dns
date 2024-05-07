@@ -5,10 +5,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const execMocks = vi.hoisted(() => ({
   exec: vi.fn(),
+  getConfig: vi.fn(),
 }));
 
 vi.mock('get-port', () => ({ default: vi.fn().mockReturnValue(1234) }));
 vi.mock('@cloud-cli/exec', () => ({ exec: execMocks.exec }));
+vi.mock('@cloud-cli/cli', async (original) => {
+  const mod: any = await original();
+  return {
+    ...mod,
+    getConfig: execMocks.getConfig,
+  };
+});
 
 beforeEach(() => {
   vi.spyOn(fs, 'writeFileSync').mockImplementation(() => {});
@@ -95,7 +103,8 @@ describe('dns', () => {
 
   describe('dns configuration', () => {
     it('should configure the default target', () => {
-      dns[init]({ defaultTarget: '1.1.2.2' });
+      execMocks.getConfig.mockReturnValue({ defaultTarget: '1.1.2.2' });
+      dns[init]();
       dns.add({ domain: 'bar' });
 
       expect(fs.writeFileSync).toHaveBeenCalledWith(expect.any(String), '1.1.2.2 bar');

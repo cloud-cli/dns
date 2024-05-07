@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
 import { exec } from '@cloud-cli/exec';
-import { init } from '@cloud-cli/cli';
+import { getConfig, init } from '@cloud-cli/cli';
 
 interface DNSConfig {
   defaultTarget?: string;
@@ -9,7 +9,7 @@ interface DNSConfig {
 
 const filePath = join(process.cwd(), 'configuration', 'hosts.conf');
 const dnsConfig: DNSConfig = {
-  defaultTarget: '127.0.0.1'
+  defaultTarget: '127.0.0.1',
 };
 
 interface DomainAndTarget {
@@ -24,7 +24,7 @@ function add(input: DomainAndTarget) {
     input.target = dnsConfig.defaultTarget;
   }
 
-  current = current.filter(item => item.domain !== input.domain);
+  current = current.filter((item) => item.domain !== input.domain);
   current.push(input);
   save(current);
 
@@ -33,7 +33,7 @@ function add(input: DomainAndTarget) {
 
 function remove(input: DomainAndTarget) {
   const current = list();
-  const newList = current.filter(item => item.domain !== input.domain);
+  const newList = current.filter((item) => item.domain !== input.domain);
   save(newList);
   return true;
 }
@@ -44,17 +44,13 @@ function list(): DomainAndTarget[] {
   }
 
   const input = fs.readFileSync(filePath, 'utf8');
-  const entries = input
-    .trim()
-    .split('\n')
-    .filter(Boolean)
-    .flatMap(parseDNSLine)
+  const entries = input.trim().split('\n').filter(Boolean).flatMap(parseDNSLine);
 
   return entries;
 }
 
-function get(options: { domain: string; }): DomainAndTarget | null {
-  return list().filter(d => d.domain === options.domain)[0] || null;
+function get(options: { domain: string }): DomainAndTarget | null {
+  return list().filter((d) => d.domain === options.domain)[0] || null;
 }
 
 async function reload() {
@@ -63,10 +59,8 @@ async function reload() {
   return cmd.ok || Promise.reject(new Error('Failed to reload'));
 }
 
-function addDnsConfig(options: DNSConfig) {
-  if (options && options.defaultTarget) {
-    dnsConfig.defaultTarget = options.defaultTarget;
-  }
+function addDnsConfig() {
+  Object.assign(dnsConfig, getConfig('dns'));
 }
 
 function save(list: DomainAndTarget[]) {
@@ -83,7 +77,7 @@ function save(list: DomainAndTarget[]) {
 
 export function parseDNSLine(line: string): DomainAndTarget[] {
   const [ip, ...domains] = line.split(/\s+/);
-  return domains.map(d => ({ domain: d, target: ip }));
+  return domains.map((d) => ({ domain: d, target: ip }));
 }
 
-export default { add, remove, list, reload, get, [init]: addDnsConfig }
+export default { add, remove, list, reload, get, [init]: addDnsConfig };
