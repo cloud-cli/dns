@@ -64,15 +64,8 @@ function addDnsConfig() {
 }
 
 function save(list: DomainAndTarget[]) {
-  const targets: Record<string, string[]> = list.reduce((all, next) => {
-    all[next.target] ||= [];
-    all[next.target].push(next.domain);
-    return all;
-  }, {});
-
-  const txt = Object.entries(targets).map(([ip, domains]) => `${ip} ${domains.join(' ')}`);
-
-  fs.writeFileSync(filePath, txt.join('\n').trim());
+  let lines = list.map(next => next.target + ' ' + next.domain);
+  fs.writeFileSync(filePath, lines.join('\n').trim());
 }
 
 export function parseDNSLine(line: string): DomainAndTarget[] {

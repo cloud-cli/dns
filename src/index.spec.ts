@@ -73,14 +73,12 @@ describe('dns', () => {
     dns.add({ domain: 'bar', target: '2.3.4.5' });
     dns.add({ domain: 'baz' });
 
-    const lines = ['2.3.4.5 foo bar', '127.0.0.1 baz'];
-
     expect(fs.writeFileSync).toHaveBeenCalledWith(expect.any(String), '2.3.4.5 foo');
-    expect(fs.writeFileSync).toHaveBeenCalledWith(expect.any(String), '2.3.4.5 foo bar');
-    expect(fs.writeFileSync).toHaveBeenCalledWith(expect.any(String), lines.join('\n'));
+    expect(fs.writeFileSync).toHaveBeenCalledWith(expect.any(String), '2.3.4.5 foo\n2.3.4.5 bar');
+    expect(fs.writeFileSync).toHaveBeenCalledWith(expect.any(String), '2.3.4.5 foo\n2.3.4.5 bar\n127.0.0.1 baz');
 
     dns.remove({ domain: 'baz' });
-    expect(text).toBe(lines[0]);
+    expect(text).toBe('2.3.4.5 foo\n2.3.4.5 bar');
   });
 
   describe('reload', () => {
