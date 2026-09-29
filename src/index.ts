@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
 import { exec } from '@cloud-cli/exec';
-import { getConfig, init } from '@cloud-cli/cli';
+import { getConfig, init, help } from '@cloud-cli/cli';
 
 interface DNSConfig {
   defaultTarget?: string;
@@ -80,17 +80,15 @@ export default {
   reload,
   get,
   [init]: addDnsConfig,
-  help: () => ({
-    description: 'Manage DNS host entries',
-    commands: {
-      'dns add [domain]': 'Add a DNS entry for a domain (defaults to 127.0.0.1 if no target specified)',
-      'dns remove [domain]': 'Remove a DNS entry for a domain',
-      'dns list': 'List all DNS entries',
-      'dns get [domain]': 'Get DNS entry for a specific domain',
-    },
-    options: {
-      domain: 'Domain name',
-      target: 'IP address (defaults to 127.0.0.1)',
-    },
-  }),
+  [help]: () => `Manage DNS host entries
+
+Available commands:
+  add [domain] - Add a DNS entry for a domain (defaults to 127.0.0.1 if no target specified)
+  remove [domain] - Remove a DNS entry for a domain
+  list - List all DNS entries
+  get [domain] - Get DNS entry for a specific domain
+
+Options:
+  domain - Domain name
+  target - IP address (defaults to 127.0.0.1)`,
 };

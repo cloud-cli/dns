@@ -1,6 +1,6 @@
 import dns, { parseDNSLine } from './index';
 import fs from 'fs';
-import { init } from '@cloud-cli/cli';
+import { init, help } from '@cloud-cli/cli';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const execMocks = vi.hoisted(() => ({
@@ -15,6 +15,7 @@ vi.mock('@cloud-cli/cli', async (original) => {
   return {
     ...mod,
     getConfig: execMocks.getConfig,
+    help: mod.help,
   };
 });
 
@@ -24,6 +25,25 @@ beforeEach(() => {
 });
 
 describe('dns', () => {
+  it('should have a [help] Symbol export that is a function', () => {
+    expect(dns[help]).toBeDefined();
+    expect(typeof dns[help]).toBe('function');
+  });
+
+  it('should return a string help text', () => {
+    const helpText = dns[help]();
+    expect(typeof helpText).toBe('string');
+    expect(helpText).toContain('DNS');
+    expect(helpText).toContain('add [domain]');
+    expect(helpText).toContain('remove [domain]');
+    expect(helpText).toContain('list');
+    expect(helpText).toContain('get [domain]');
+  });
+
+  it('should not expose "help" as a normal command key', () => {
+    expect(dns.help).toBeUndefined();
+  });
+
   it('should parse a DNS configuration line', () => {
     const line = '1.2.3.4     foo bar';
     const output = parseDNSLine(line);
