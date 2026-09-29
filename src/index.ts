@@ -64,7 +64,7 @@ function addDnsConfig() {
 }
 
 function save(list: DomainAndTarget[]) {
-  let lines = list.map(next => next.target + ' ' + next.domain);
+  let lines = list.map((next) => next.target + ' ' + next.domain);
   fs.writeFileSync(filePath, lines.join('\n').trim());
 }
 
@@ -73,4 +73,24 @@ export function parseDNSLine(line: string): DomainAndTarget[] {
   return domains.map((d) => ({ domain: d, target: ip }));
 }
 
-export default { add, remove, list, reload, get, [init]: addDnsConfig };
+export default {
+  add,
+  remove,
+  list,
+  reload,
+  get,
+  [init]: addDnsConfig,
+  help: () => ({
+    description: 'Manage DNS host entries',
+    commands: {
+      'dns add [domain]': 'Add a DNS entry for a domain (defaults to 127.0.0.1 if no target specified)',
+      'dns remove [domain]': 'Remove a DNS entry for a domain',
+      'dns list': 'List all DNS entries',
+      'dns get [domain]': 'Get DNS entry for a specific domain',
+    },
+    options: {
+      domain: 'Domain name',
+      target: 'IP address (defaults to 127.0.0.1)',
+    },
+  }),
+};
