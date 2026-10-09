@@ -1,15 +1,15 @@
-import fs from 'node:fs';
-import { join } from 'node:path';
-import { exec } from '@cloud-cli/exec';
-import { getConfig, init, help } from '@cloud-cli/cli';
+import fs from "node:fs";
+import { join } from "node:path";
+import { exec } from "@cloud-cli/exec";
+import { getConfig, init, help } from "@cloud-cli/cli";
 
 interface DNSConfig {
   defaultTarget?: string;
 }
 
-const filePath = join(process.cwd(), 'configuration', 'hosts.conf');
+const filePath = join(process.cwd(), "configuration", "hosts.conf");
 const dnsConfig: DNSConfig = {
-  defaultTarget: '127.0.0.1',
+  defaultTarget: "127.0.0.1",
 };
 
 interface DomainAndTarget {
@@ -43,8 +43,8 @@ function list(): DomainAndTarget[] {
     return [];
   }
 
-  const input = fs.readFileSync(filePath, 'utf8');
-  const entries = input.trim().split('\n').filter(Boolean).flatMap(parseDNSLine);
+  const input = fs.readFileSync(filePath, "utf8");
+  const entries = input.trim().split("\n").filter(Boolean).flatMap(parseDNSLine);
 
   return entries;
 }
@@ -54,18 +54,18 @@ function get(options: { domain: string }): DomainAndTarget | null {
 }
 
 async function reload() {
-  const getPid = await exec('pidof', ['dnsmasq']);
-  const cmd = await exec('kill', ['-s', 'HUP', getPid.stdout.trim()]);
-  return cmd.ok || Promise.reject(new Error('Failed to reload'));
+  const getPid = await exec("pidof", ["dnsmasq"]);
+  const cmd = await exec("kill", ["-s", "HUP", getPid.stdout.trim()]);
+  return cmd.ok || Promise.reject(new Error("Failed to reload"));
 }
 
 function addDnsConfig() {
-  Object.assign(dnsConfig, getConfig('dns'));
+  Object.assign(dnsConfig, getConfig("dns"));
 }
 
 function save(list: DomainAndTarget[]) {
-  let lines = list.map((next) => next.target + ' ' + next.domain);
-  fs.writeFileSync(filePath, lines.join('\n').trim());
+  const lines = list.map((next) => next.target + " " + next.domain);
+  fs.writeFileSync(filePath, lines.join("\n").trim());
 }
 
 export function parseDNSLine(line: string): DomainAndTarget[] {
@@ -83,10 +83,11 @@ export default {
   [help]: () => `Manage DNS host entries
 
 Available commands:
-  add [domain] - Add a DNS entry for a domain (defaults to 127.0.0.1 if no target specified)
-  remove [domain] - Remove a DNS entry for a domain
-  list - List all DNS entries
-  get [domain] - Get DNS entry for a specific domain
+  dns.add --domain <domain> [--target <ip>] - Add a DNS entry (target defaults to 127.0.0.1)
+  dns.remove --domain <domain> - Remove a DNS entry
+  dns.list - List all DNS entries
+  dns.reload - Reload the DNS service
+  dns.get --domain <domain> - Get a DNS entry
 
 Options:
   domain - Domain name

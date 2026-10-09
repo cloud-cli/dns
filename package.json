@@ -27,6 +27,6 @@
     "@cloud-cli/exec": "^1.0.4"
   },
   "peerDependencies": {
-    "@cloud-cli/cli": "^2.0.0"
+    "@cloud-cli/cli": "^2.2.0"
   }
 }
